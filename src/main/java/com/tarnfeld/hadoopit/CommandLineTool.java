@@ -75,7 +75,9 @@ public class CommandLineTool {
             }
         } else {
             if (!manager.takeSnapshot()) {
-                LOG.info("Didn't create a snapshot");
+                LOG.info("Skipped creating a snapshot of " + this.directory);
+            } else {
+                LOG.info("Created snapshot of " + this.directory);
             }
 
             Integer cleaned = manager.cleanupOutdatedSnapshots();
