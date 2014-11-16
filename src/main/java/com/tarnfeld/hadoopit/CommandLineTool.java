@@ -45,16 +45,37 @@ public class CommandLineTool {
                required=true)
     private Integer retention;
 
+    @Parameter(names={"-l", "--label"},
+               description="Label for this snapshot frequency")
+    private String label;
+
     public int run() throws Exception {
         if (this.help) {
-            // TODO(tarnfeld): Print out help and usage
+            System.err.println("Usage: hadoop com.tarnfeld.hadoopit.CommandLineTool [-hdfr]");
+            System.err.println("\nHadoopit is a CLI tool for automating HDFS directory snapshots.\n");
+            System.err.println("You should schedule (e.g with cron) Hadoopit for each frequency and\n" +
+                               "level of retention you desire. You can specify a label for each type\n" +
+                               "of snapshot you want to retain, which can help with human readability.");
+
+            System.err.println("\nRequired Options:");
+            System.err.println("      --snapshot-dir(-d) DIRECTORY" +
+                               "\n      --snapshot-freq(-f) FREQUENCY" +
+                               "\n      --snapshot-retention(-r) RETENTION");
+
+            System.err.println("\nOptional Options:");
+            System.err.println("      --help(-h)" +
+                               "\n      --snapshot-label(-l) LABEL");
+
+            System.err.println("\nExample (Daily snapshots kept for a week);");
+            System.err.println("  $ hadoop com.tarnfeld.hadoopit.CommandLineTool -d /data -f 1440 -r 7 -l daily\n");
+
             return 1;
         }
 
         // Get the HDFS filesystem
         FileSystem filesystem = FileSystem.get(getHadoopConfiguration());
         if (!(filesystem instanceof DistributedFileSystem)) {
-            LOG.error("Cannot create snapshots of filesystem that's not HDFS");
+            LOG.error("Can't create snapshots from filesystem that's not HDFS");
             return 1;
         }
 
