@@ -88,12 +88,16 @@ public class SnapshotManager {
         // Sort the snapshots to ensure they are in chronological order
         Collections.sort(snapshots, new SnapshotComparator());
 
-        Integer retainedSnapshots = 0;
-        for (Iterator<Snapshot> iterator = snapshots.iterator(); iterator.hasNext();) {
-            retainedSnapshots++;
+        if (onlyOutdated) {
+            Integer retainedSnapshots = 0;
+            Iterator<Snapshot> iterator = snapshots.iterator();
+            while (iterator.hasNext()) {
+                iterator.next();
+                retainedSnapshots++;
 
-            if (onlyOutdated && retainedSnapshots <=  this.retention) {
-                iterator.remove();
+                if (retainedSnapshots <= this.retention) {
+                    iterator.remove();
+                }
             }
         }
 
