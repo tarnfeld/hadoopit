@@ -4,6 +4,8 @@ package com.tarnfeld.hadoopit;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -12,7 +14,9 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.protocol.SnapshottableDirectoryStatus;
-
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 public class SnapshotManager {
     private static final Log LOG = LogFactory.getLog(SnapshotManager.class);
@@ -43,15 +47,27 @@ public class SnapshotManager {
         }
     }
 
-    public boolean needToTakeSnapshot() {
-        return false;
+    public boolean needToTakeSnapshot() throws Exception {
+        Snapshot latestSnapshot = getLatestSnapshot();
+        DateTime snapshotDue = latestSnapshot.getCreatedTime().plusMinutes(this.frequency);
+
+        return snapshotDue.isBeforeNow();
     }
 
-    public List<Snapshot> listSnapshots() throws IOException {
+    public List<Snapshot> listAllSnapshots() throws Exception {
         return listSnapshots(false);
     }
 
-    public List<Snapshot> listSnapshots(boolean outdated) throws IOException {
+    public List<Snapshot> listOutdatedSnapshots() throws Exception {
+        return listSnapshots(true);
+    }
+
+    public Snapshot getLatestSnapshot() throws Exception {
+        List<Snapshot> snapshots = listAllSnapshots();
+        return snapshots.get(snapshots.size() - 1);
+    }
+
+    private List<Snapshot> listSnapshots(boolean onlyOutdated) throws Exception {
         Path snapshotsDir = new Path(this.directory + "/.snapshot");
         ArrayList<Snapshot> snapshots = new ArrayList<Snapshot>();
 
@@ -69,22 +85,46 @@ public class SnapshotManager {
             }
         }
 
+        // Sort the snapshots to ensure they are in chronological order
+        Collections.sort(snapshots, new SnapshotComparator());
+
+        Integer retainedSnapshots = 0;
+        for (Iterator<Snapshot> iterator = snapshots.iterator(); iterator.hasNext();) {
+            retainedSnapshots++;
+
+            if (onlyOutdated && retainedSnapshots <=  this.retention) {
+                iterator.remove();
+            }
+        }
+
         return snapshots;
     }
 
-    public boolean takeSnapshot() {
-        if (!needToTakeSnapshot()) {
-            return false;
+    public boolean takeSnapshot() throws Exception {
+        if (needToTakeSnapshot()) {
+            DateTimeFormatter formatter = DateTimeFormat.forPattern(Snapshot.DATE_FORMAT);
+            String snapshotName = "s" + formatter.print(DateTime.now());
+
+            LOG.info("Creating snapshot with name " + snapshotName + " for path " + this.directory);
+            Path snapshot = this.filesystem.createSnapshot(this.directory, snapshotName);
+
+            if (snapshot != null) {
+                return true;
+            }
         }
 
-        // TODO(tarnfeld): Perform the filesystem snapshot
-
-        return true;
+        return false;
     }
 
-    public Integer cleanupOutdatedSnapshots() {
-        // TODO(tarnfeld): Cleanup outdated snapshots
+    public Integer cleanupOutdatedSnapshots() throws Exception {
+        Integer snapshotsRemoved = 0;
+        List<Snapshot> outdatedSnapshots = listOutdatedSnapshots();
 
-        return 0;
+        for (Snapshot s : outdatedSnapshots) {
+            this.filesystem.deleteSnapshot(this.directory, s.getName());
+            snapshotsRemoved++;
+        }
+
+        return snapshotsRemoved;
     }
 }

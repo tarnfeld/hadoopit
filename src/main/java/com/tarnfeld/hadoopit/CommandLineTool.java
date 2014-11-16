@@ -70,7 +70,7 @@ public class CommandLineTool {
                 LOG.info("Would take snapshot of " + this.directory);
             }
 
-            for (Snapshot s : manager.listSnapshots(true)) {
+            for (Snapshot s : manager.listOutdatedSnapshots()) {
                 LOG.info("Would clean out old snapshot: " + s.toString());
             }
         } else {

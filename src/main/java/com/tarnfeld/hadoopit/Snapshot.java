@@ -1,8 +1,6 @@
 
 package com.tarnfeld.hadoopit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.hdfs.protocol.SnapshottableDirectoryStatus;
 import org.joda.time.DateTime;
@@ -10,14 +8,21 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 public class Snapshot {
-    private static final Log LOG = LogFactory.getLog(Snapshot.class);
 
     private SnapshottableDirectoryStatus snapshottableDir;
     private FileStatus directoryStatus;
 
-    public Snapshot(SnapshottableDirectoryStatus dir, FileStatus status) {
+    private String name;
+    private DateTime created;
+
+    public static String DATE_FORMAT = "yyyyMMdd-Hms.SSS";
+
+    public Snapshot(SnapshottableDirectoryStatus dir, FileStatus status)
+            throws Exception {
         this.snapshottableDir = dir;
         this.directoryStatus = status;
+
+        parseStatus();
     }
 
     public SnapshottableDirectoryStatus getSnapshottableDirectoryStatus() {
@@ -25,36 +30,32 @@ public class Snapshot {
     }
 
     public String getName() {
-        return this.directoryStatus.getPath().getName();
+        return this.name;
     }
 
     public FileStatus getSnapshotStatus() {
         return this.directoryStatus;
     }
 
-    public DateTime getSnapshotTime() throws Exception {
-        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyyMMdd-Hms.SSS");
-
-        String name = this.getName();
-        DateTime dateTime = formatter.parseDateTime(name.substring(1, name.length()));
-
-        if (dateTime == null) {
-            throw new Exception("Failed to parse date from snapshot " + name);
-        }
-
-        return dateTime;
+    public DateTime getCreatedTime() {
+        return this.created;
     }
 
     @Override
     public String toString() {
-        String dateString = null;
+        return this.directoryStatus.getPath().getParent() + "[" + this.created + "]";
+    }
 
-        try {
-            dateString = getSnapshotTime().toString();
-        } catch (Exception e) {
-            LOG.error("Caught exception getting the snapshot time " + e);
+    private void parseStatus() throws Exception {
+        this.name = this.directoryStatus.getPath().getName();
+
+        DateTimeFormatter formatter = DateTimeFormat.forPattern(Snapshot.DATE_FORMAT);
+
+        String name = this.name;
+        this.created = formatter.parseDateTime(name.substring(1, name.length()));
+
+        if (this.created == null) {
+            throw new Exception("Failed to parse date from snapshot " + name);
         }
-
-        return this.directoryStatus.getPath().getParent() + "[" + dateString + "]";
     }
 }
