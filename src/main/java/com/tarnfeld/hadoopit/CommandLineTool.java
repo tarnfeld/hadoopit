@@ -64,6 +64,7 @@ public class CommandLineTool {
 
             System.err.println("\nOptional Options:");
             System.err.println("      --help(-h)" +
+                               "\n      --dry-run" +
                                "\n      --snapshot-label(-l) LABEL");
 
             System.err.println("\nExample (Daily snapshots kept for a week);");
