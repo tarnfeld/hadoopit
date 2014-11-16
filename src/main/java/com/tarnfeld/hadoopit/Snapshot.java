@@ -2,6 +2,7 @@
 package com.tarnfeld.hadoopit;
 
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.protocol.SnapshottableDirectoryStatus;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -39,6 +40,10 @@ public class Snapshot {
 
     public DateTime getCreatedTime() {
         return this.created;
+    }
+
+    public Path getPath() {
+        return this.directoryStatus.getPath();
     }
 
     @Override

@@ -125,6 +125,7 @@ public class SnapshotManager {
         List<Snapshot> outdatedSnapshots = listOutdatedSnapshots();
 
         for (Snapshot s : outdatedSnapshots) {
+            LOG.info("Deleting snapshot " + s.getPath());
             this.filesystem.deleteSnapshot(this.directory, s.getName());
             snapshotsRemoved++;
         }
