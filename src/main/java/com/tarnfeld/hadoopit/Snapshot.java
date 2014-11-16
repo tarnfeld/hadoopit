@@ -16,7 +16,7 @@ public class Snapshot {
     private String name;
     private DateTime created;
 
-    public static String DATE_FORMAT = "yyyyMMdd-Hms.SSS";
+    public static String DATE_FORMAT = "yyyy.MM.dd.H.m.s.SSS";
 
     public Snapshot(SnapshottableDirectoryStatus dir, FileStatus status)
             throws Exception {
@@ -56,11 +56,16 @@ public class Snapshot {
 
         DateTimeFormatter formatter = DateTimeFormat.forPattern(Snapshot.DATE_FORMAT);
 
-        String name = this.name;
-        this.created = formatter.parseDateTime(name.substring(1, name.length()));
+        String[] parts = this.name.split("-");
+        if (parts.length < 3) {
+            throw new Exception("Expected at least three parts from the snapshot name");
+        }
+
+        String timestamp = parts[2];
+        this.created = formatter.parseDateTime(timestamp);
 
         if (this.created == null) {
-            throw new Exception("Failed to parse date from snapshot " + name);
+            throw new Exception("Failed to parse date from snapshot " + this.name);
         }
     }
 }

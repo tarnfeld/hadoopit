@@ -24,15 +24,18 @@ public class SnapshotManager {
     private Path directory; // Root directory to snapshot
     private Integer frequency; // Frequency to perform snapshots in minutes
     private Integer retention; // Number of snapshots to retain
+    private String label; // Custom human readable label for snapshots
 
     private DistributedFileSystem filesystem;
     private SnapshottableDirectoryStatus directoryStatus;
 
     public SnapshotManager(DistributedFileSystem fs, String snapshotDirectory,
-                           Integer frequency, Integer retention) throws IOException, Exception {
+                           Integer frequency, Integer retention, String label)
+                                   throws IOException, Exception {
         this.directory = new Path(snapshotDirectory);
         this.frequency = frequency;
         this.retention = retention;
+        this.label = label;
         this.filesystem = fs;
 
         for (SnapshottableDirectoryStatus dir : fs.getSnapshottableDirListing()) {
@@ -49,6 +52,10 @@ public class SnapshotManager {
 
     public boolean needToTakeSnapshot() throws Exception {
         Snapshot latestSnapshot = getLatestSnapshot();
+        if (latestSnapshot == null) {
+            return true;
+        }
+
         DateTime snapshotDue = latestSnapshot.getCreatedTime().plusMinutes(this.frequency);
 
         return snapshotDue.isBeforeNow();
@@ -64,16 +71,21 @@ public class SnapshotManager {
 
     public Snapshot getLatestSnapshot() throws Exception {
         List<Snapshot> snapshots = listAllSnapshots();
+        if (snapshots.size() == 0) {
+            return null;
+        }
+
         return snapshots.get(snapshots.size() - 1);
     }
 
     private List<Snapshot> listSnapshots(boolean onlyOutdated) throws Exception {
-        Path snapshotsDir = new Path(this.directory + "/.snapshot");
+        Path snapshotsDir = new Path(this.directory + "/.snapshot/hadoopit-" +
+                                     this.frequency + "-*");
         ArrayList<Snapshot> snapshots = new ArrayList<Snapshot>();
 
         FileStatus[] files = null;
         try {
-            files = this.filesystem.listStatus(snapshotsDir);
+            files = this.filesystem.globStatus(snapshotsDir);
         } catch (FileNotFoundException e) { }
 
         if (files != null) {
@@ -81,6 +93,8 @@ public class SnapshotManager {
                 if (status.isDirectory()) {
                     Snapshot snapshot = new Snapshot(this.directoryStatus, status);
                     snapshots.add(snapshot);
+
+                    LOG.info("Found snapshot " + snapshot);
                 }
             }
         }
@@ -107,7 +121,14 @@ public class SnapshotManager {
     public boolean takeSnapshot() throws Exception {
         if (needToTakeSnapshot()) {
             DateTimeFormatter formatter = DateTimeFormat.forPattern(Snapshot.DATE_FORMAT);
-            String snapshotName = "s" + formatter.print(DateTime.now());
+
+            String label = "";
+            if (this.label != null) {
+                label = "-" + this.label;
+            }
+
+            String snapshotName = "hadoopit-" + this.frequency +
+                                  "-" + formatter.print(DateTime.now()) + label;
 
             LOG.info("Creating snapshot with name " + snapshotName + " for path " + this.directory);
             Path snapshot = this.filesystem.createSnapshot(this.directory, snapshotName);

@@ -83,7 +83,8 @@ public class CommandLineTool {
             (DistributedFileSystem) filesystem,
             this.directory,
             this.frequency,
-            this.retention
+            this.retention,
+            this.label
         );
 
         if (this.dry) {
