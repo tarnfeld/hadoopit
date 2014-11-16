@@ -142,6 +142,10 @@ public class SnapshotManager {
     }
 
     public Integer cleanupOutdatedSnapshots() throws Exception {
+        if (this.retention == 0) {
+            return 0;
+        }
+
         Integer snapshotsRemoved = 0;
         List<Snapshot> outdatedSnapshots = listOutdatedSnapshots();
 
