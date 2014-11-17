@@ -57,7 +57,7 @@ public class TestSnapshotManager extends TestCase {
         fs.mkdir(dir, null);
         fs.allowSnapshot(dir);
 
-        SnapshotManager manager = new SnapshotManager(fs, dir, 1, 1, null);
+        SnapshotManager manager = new SnapshotManager(fs, dir, 1, 2, null);
 
         assertEquals(manager.listAllSnapshots().size(), 0);
         assertEquals(manager.listOutdatedSnapshots().size(), 0);
@@ -117,13 +117,18 @@ public class TestSnapshotManager extends TestCase {
         assertEquals(manager.takeSnapshot(), false);
 
         assertEquals(manager.listAllSnapshots().size(), 2);
-        assertEquals(manager.listOutdatedSnapshots().size(), 0);
+        assertEquals(manager.listOutdatedSnapshots().size(), 1);
 
         // Sleep for 1 minute so we can take another snapshot
         Thread.sleep(1000 * 61);
 
-        assertEquals(manager.listAllSnapshots().size(), 2);
-        assertEquals(manager.listOutdatedSnapshots().size(), 1);
+        assertEquals(manager.needToTakeSnapshot(), true);
+        assertEquals(manager.takeSnapshot(), true);
+        assertEquals(manager.needToTakeSnapshot(), false);
+        assertEquals(manager.takeSnapshot(), false);
+
+        assertEquals(manager.listAllSnapshots().size(), 3);
+        assertEquals(manager.listOutdatedSnapshots().size(), 2);
     }
 
     public void testCleanupOutdatedSnapshots() throws Exception {
