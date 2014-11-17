@@ -15,6 +15,8 @@ public class Snapshot {
 
     private String name;
     private DateTime created;
+    private Integer frequency;
+    private String label;
 
     public static String DATE_FORMAT = "yyyy.MM.dd.H.m.s.SSS";
 
@@ -30,12 +32,12 @@ public class Snapshot {
         return this.snapshottableDir;
     }
 
-    public String getName() {
-        return this.name;
+    public FileStatus getDirectoryStatus() {
+        return this.directoryStatus;
     }
 
-    public FileStatus getSnapshotStatus() {
-        return this.directoryStatus;
+    public String getName() {
+        return this.name;
     }
 
     public DateTime getCreatedTime() {
@@ -46,9 +48,17 @@ public class Snapshot {
         return this.directoryStatus.getPath();
     }
 
+    public Integer getSnapshotFrequency() {
+        return this.frequency;
+    }
+
+    public String getLabel() {
+        return this.label;
+    }
+
     @Override
     public String toString() {
-        return this.directoryStatus.getPath().getParent() + "[" + this.created + "]";
+        return this.snapshottableDir.getFullPath() + "[" + this.created + "]";
     }
 
     private void parseStatus() throws Exception {
@@ -59,6 +69,11 @@ public class Snapshot {
         String[] parts = this.name.split("-");
         if (parts.length < 3) {
             throw new Exception("Expected at least three parts from the snapshot name");
+        }
+
+        this.frequency = new Integer(parts[1]);
+        if (parts.length > 3) {
+            this.label = parts[3];
         }
 
         String timestamp = parts[2];
