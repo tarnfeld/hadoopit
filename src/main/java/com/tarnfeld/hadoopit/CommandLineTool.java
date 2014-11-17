@@ -15,7 +15,8 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
 /**
- * CommandLineTool is a thing for things
+ * CommandLineTool for managing HDFS snapshots. Use `--help` to print usage
+ * information to the command line.
  */
 public class CommandLineTool {
     private static final Log LOG = LogFactory.getLog(CommandLineTool.class);
@@ -82,7 +83,7 @@ public class CommandLineTool {
 
         SnapshotManager manager = new SnapshotManager(
             (DistributedFileSystem) filesystem,
-            this.directory,
+            new Path(this.directory),
             this.frequency,
             this.retention,
             this.label

@@ -18,6 +18,13 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+/**
+ * SnapshotManager is an object that allows you to manage (create and cleanup)
+ * snapshots of a snapshottable directory in HDFS.
+ *
+ * You provide a frequency and retention parameter, which is used to
+ * automatically take new snapshots and clean up outdated ones.
+ */
 public class SnapshotManager {
     private static final Log LOG = LogFactory.getLog(SnapshotManager.class);
 
@@ -29,10 +36,10 @@ public class SnapshotManager {
     private DistributedFileSystem filesystem;
     private SnapshottableDirectoryStatus directoryStatus;
 
-    public SnapshotManager(DistributedFileSystem fs, String snapshotDirectory,
+    public SnapshotManager(DistributedFileSystem fs, Path path,
                            Integer frequency, Integer retention, String label)
                                    throws IOException, Exception {
-        this.directory = new Path(snapshotDirectory);
+        this.directory = path;
         this.frequency = frequency;
         this.retention = retention;
         this.label = label;

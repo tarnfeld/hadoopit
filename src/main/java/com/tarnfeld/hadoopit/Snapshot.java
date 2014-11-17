@@ -8,6 +8,10 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+/**
+ * Snapshot is an object that represents a single snapshot of a snapshottable
+ * directory in HDFS.
+ */
 public class Snapshot {
 
     private SnapshottableDirectoryStatus snapshottableDir;
