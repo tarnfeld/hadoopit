@@ -1,0 +1,6 @@
+notifications:
+  email: false
+language: java
+cache:
+  directories:
+    - .autoconf

@@ -26,6 +26,7 @@ Required Options:
 
 Optional Options:
       --help(-h)
+      --dry-run
       --snapshot-label(-l) LABEL
 
 Example (Daily snapshots kept for a week);
