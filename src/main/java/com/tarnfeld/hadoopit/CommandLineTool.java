@@ -37,12 +37,12 @@ public class CommandLineTool {
     private String directory;
 
     @Parameter(names={"-f", "--snapshot-freq"},
-               description="Frequency to perform snapshots (minutes)",
+               description="Frequency to perform snapshots (in minutes)",
                required=true)
     private Integer frequency;
 
     @Parameter(names={"-r", "--snapshot-retention"},
-               description="Number of historic snapshot to retain",
+               description="Number of historic snapshots to retain",
                required=true)
     private Integer retention;
 
@@ -68,7 +68,7 @@ public class CommandLineTool {
                                "\n      --dry-run" +
                                "\n      --snapshot-label(-l) LABEL");
 
-            System.err.println("\nExample (Daily snapshots kept for a week);");
+            System.err.println("\nExample (Snapshot /data every 24 hours and retain them for a week)");
             System.err.println("  $ hadoop com.tarnfeld.hadoopit.CommandLineTool -d /data -f 1440 -r 7 -l daily\n");
 
             return 1;
