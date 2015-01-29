@@ -181,8 +181,8 @@ public class TestSnapshotManager extends TestCase {
 
         snapshots = manager.listAllSnapshots();
         assertEquals(snapshots.size(), 2);
-        assertEquals(Path.getPathWithoutSchemeAndAuthority(snapshots.get(0).getPath()), first);
-        assertEquals(Path.getPathWithoutSchemeAndAuthority(snapshots.get(1).getPath()), second);
+        assertEquals(Path.getPathWithoutSchemeAndAuthority(snapshots.get(0).getPath()), second);
+        assertEquals(Path.getPathWithoutSchemeAndAuthority(snapshots.get(1).getPath()), first);
 
         snapshots = manager.listOutdatedSnapshots();
         assertEquals(Path.getPathWithoutSchemeAndAuthority(snapshots.get(0).getPath()), first);

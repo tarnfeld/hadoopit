@@ -108,6 +108,7 @@ public class SnapshotManager {
 
         // Sort the snapshots to ensure they are in chronological order
         Collections.sort(snapshots, new SnapshotComparator());
+        Collections.reverse(snapshots);
 
         if (onlyOutdated) {
             Integer retainedSnapshots = 0;
