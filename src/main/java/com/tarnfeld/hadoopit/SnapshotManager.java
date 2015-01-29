@@ -82,7 +82,7 @@ public class SnapshotManager {
             return null;
         }
 
-        return snapshots.get(snapshots.size() - 1);
+        return snapshots.get(0);
     }
 
     private List<Snapshot> listSnapshots(boolean onlyOutdated) throws Exception {
