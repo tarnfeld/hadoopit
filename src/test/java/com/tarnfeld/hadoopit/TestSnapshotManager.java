@@ -1,6 +1,8 @@
 
 package com.tarnfeld.hadoopit;
 
+import java.util.List;
+
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -44,7 +46,7 @@ public class TestSnapshotManager extends TestCase {
         assertEquals(manager.listOutdatedSnapshots().size(), 0);
 
         assertEquals(manager.needToTakeSnapshot(), true);
-        assertEquals(manager.takeSnapshot(), true);
+        assertNotNull(manager.takeSnapshot());
 
         assertEquals(manager.listAllSnapshots().size(), 1);
         assertEquals(manager.listOutdatedSnapshots().size(), 0);
@@ -63,9 +65,9 @@ public class TestSnapshotManager extends TestCase {
         assertEquals(manager.listOutdatedSnapshots().size(), 0);
 
         assertEquals(manager.needToTakeSnapshot(), true);
-        assertEquals(manager.takeSnapshot(), true);
+        assertNotNull(manager.takeSnapshot());
         assertEquals(manager.needToTakeSnapshot(), false);
-        assertEquals(manager.takeSnapshot(), false);
+        assertNull(manager.takeSnapshot());
 
         assertEquals(manager.listAllSnapshots().size(), 1);
         assertEquals(manager.listOutdatedSnapshots().size(), 0);
@@ -77,9 +79,9 @@ public class TestSnapshotManager extends TestCase {
         assertEquals(manager.listOutdatedSnapshots().size(), 0);
 
         assertEquals(manager.needToTakeSnapshot(), true);
-        assertEquals(manager.takeSnapshot(), true);
+        assertNotNull(manager.takeSnapshot());
         assertEquals(manager.needToTakeSnapshot(), false);
-        assertEquals(manager.takeSnapshot(), false);
+        assertNull(manager.takeSnapshot());
 
         assertEquals(manager.listAllSnapshots().size(), 2);
         assertEquals(manager.listOutdatedSnapshots().size(), 0);
@@ -98,9 +100,9 @@ public class TestSnapshotManager extends TestCase {
         assertEquals(manager.listOutdatedSnapshots().size(), 0);
 
         assertEquals(manager.needToTakeSnapshot(), true);
-        assertEquals(manager.takeSnapshot(), true);
+        assertNotNull(manager.takeSnapshot());
         assertEquals(manager.needToTakeSnapshot(), false);
-        assertEquals(manager.takeSnapshot(), false);
+        assertNull(manager.takeSnapshot());
 
         assertEquals(manager.listAllSnapshots().size(), 1);
         assertEquals(manager.listOutdatedSnapshots().size(), 0);
@@ -112,9 +114,9 @@ public class TestSnapshotManager extends TestCase {
         assertEquals(manager.listOutdatedSnapshots().size(), 0);
 
         assertEquals(manager.needToTakeSnapshot(), true);
-        assertEquals(manager.takeSnapshot(), true);
+        assertNotNull(manager.takeSnapshot());
         assertEquals(manager.needToTakeSnapshot(), false);
-        assertEquals(manager.takeSnapshot(), false);
+        assertNull(manager.takeSnapshot());
 
         assertEquals(manager.listAllSnapshots().size(), 2);
         assertEquals(manager.listOutdatedSnapshots().size(), 1);
@@ -123,9 +125,9 @@ public class TestSnapshotManager extends TestCase {
         Thread.sleep(1000 * 61);
 
         assertEquals(manager.needToTakeSnapshot(), true);
-        assertEquals(manager.takeSnapshot(), true);
+        assertNotNull(manager.takeSnapshot());
         assertEquals(manager.needToTakeSnapshot(), false);
-        assertEquals(manager.takeSnapshot(), false);
+        assertNull(manager.takeSnapshot());
 
         assertEquals(manager.listAllSnapshots().size(), 3);
         assertEquals(manager.listOutdatedSnapshots().size(), 2);
@@ -155,6 +157,43 @@ public class TestSnapshotManager extends TestCase {
         assertEquals(manager.cleanupOutdatedSnapshots(), (Integer) 1);
 
         assertEquals(manager.listAllSnapshots().size(), 1);
+        assertEquals(manager.listOutdatedSnapshots().size(), 0);
+    }
+
+    public void testCleanupOutdatedSnapshotsCorrectPaths() throws Exception {
+        DistributedFileSystem fs = cluster.getFileSystem();
+        Path dir = new Path("/e");
+
+        fs.mkdir(dir, null);
+        fs.allowSnapshot(dir);
+
+        SnapshotManager manager = new SnapshotManager(fs, dir, 1, 1, null);
+
+        // Take the first snapshot
+        Path first = Path.getPathWithoutSchemeAndAuthority(manager.takeSnapshot());
+        Thread.sleep(1000 * 61);
+
+        // Take the second snapshot
+        Path second = Path.getPathWithoutSchemeAndAuthority(manager.takeSnapshot());
+        Thread.sleep(1000 * 61);
+
+        List<Snapshot> snapshots;
+
+        snapshots = manager.listAllSnapshots();
+        assertEquals(snapshots.size(), 2);
+        assertEquals(Path.getPathWithoutSchemeAndAuthority(snapshots.get(0).getPath()), second);
+        assertEquals(Path.getPathWithoutSchemeAndAuthority(snapshots.get(1).getPath()), first);
+
+        snapshots = manager.listOutdatedSnapshots();
+        assertEquals(Path.getPathWithoutSchemeAndAuthority(snapshots.get(0).getPath()), first);
+        assertEquals(snapshots.size(), 1);
+
+        assertEquals(manager.cleanupOutdatedSnapshots(), (Integer) 1);
+
+        snapshots = manager.listAllSnapshots();
+        assertEquals(snapshots.size(), 1);
+        assertEquals(Path.getPathWithoutSchemeAndAuthority(snapshots.get(0).getPath()), second);
+
         assertEquals(manager.listOutdatedSnapshots().size(), 0);
     }
 }
