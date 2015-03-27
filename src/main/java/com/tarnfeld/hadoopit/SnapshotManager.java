@@ -82,7 +82,7 @@ public class SnapshotManager {
             return null;
         }
 
-        return snapshots.get(snapshots.size() - 1);
+        return snapshots.get(0);
     }
 
     private List<Snapshot> listSnapshots(boolean onlyOutdated) throws Exception {
@@ -108,6 +108,7 @@ public class SnapshotManager {
 
         // Sort the snapshots to ensure they are in chronological order
         Collections.sort(snapshots, new SnapshotComparator());
+        Collections.reverse(snapshots);
 
         if (onlyOutdated) {
             Integer retainedSnapshots = 0;
@@ -125,7 +126,7 @@ public class SnapshotManager {
         return snapshots;
     }
 
-    public boolean takeSnapshot() throws Exception {
+    public Path takeSnapshot() throws Exception {
         if (needToTakeSnapshot()) {
             DateTimeFormatter formatter = DateTimeFormat.forPattern(Snapshot.DATE_FORMAT);
 
@@ -141,11 +142,11 @@ public class SnapshotManager {
             Path snapshot = this.filesystem.createSnapshot(this.directory, snapshotName);
 
             if (snapshot != null) {
-                return true;
+                return snapshot;
             }
         }
 
-        return false;
+        return null;
     }
 
     public Integer cleanupOutdatedSnapshots() throws Exception {

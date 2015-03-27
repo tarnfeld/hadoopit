@@ -98,7 +98,7 @@ public class CommandLineTool {
                 LOG.info("Would clean out old snapshot: " + s.toString());
             }
         } else {
-            if (!manager.takeSnapshot()) {
+            if (manager.takeSnapshot() != null) {
                 LOG.info("Skipped creating a snapshot of " + this.directory);
             } else {
                 LOG.info("Created snapshot of " + this.directory);
